@@ -176,5 +176,3 @@ class eightpuzzle_branch
 		solve(initialMat, x, y, finalMat);
 	}
 }
-
-// This code is contributed by shruti456rawal
