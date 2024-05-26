@@ -1,0 +1,19 @@
+% Helper predicate: Checks if N is divisible by any number between 2 and K.
+is_divisible(N, K) :- 0 is N mod K.
+is_divisible(N, K) :-
+    K * K < N,
+    K1 is K + 1,
+    is_divisible(N, K1).
+
+% Base case: 2 is a prime number.
+prime(2).
+
+% Recursive case: N is prime if it is greater than 2 and not divisible by any number up to its square root.
+prime(N) :-
+    N > 2,
+    \+ is_divisible(N, 2).
+
+% Queries
+% ?- prime(7).
+% ?- prime(10).
+% ?- prime(13).
