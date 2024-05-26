@@ -1,0 +1,141 @@
+import java.util.*;
+
+public class RomaniaMapAStar {
+
+    private static Map<String, List<Neighbor>> map = new HashMap<>();
+
+    public static void main(String[] args) {
+        initializeMap();
+
+        String startCity = "Solapur";
+        String goalCity = "Sangli";
+
+        List<String> path = aStarSearch(map, startCity, goalCity);
+
+        if (path != null) {
+            System.out.println("Path from " + startCity + " to " + goalCity + ": " + path);
+        } else {
+            System.out.println("No path found from " + startCity + " to " + goalCity);
+        }
+    }
+
+    private static void initializeMap() {
+        map.put("Solapur", Arrays.asList(
+                new Neighbor("Pune", 243),
+                new Neighbor("Sangli", 220),
+                new Neighbor("Nagpur", 423)
+        ));
+
+        map.put("Pune", Arrays.asList(
+                new Neighbor("Solapur", 243),
+                new Neighbor("Nashik", 210),
+                new Neighbor("Mumbai", 148)
+        ));
+
+        map.put("Nashik", Arrays.asList(
+                new Neighbor("Pune", 210),
+                new Neighbor("Mumbai", 168)
+        ));
+
+        map.put("Mumbai", Arrays.asList(
+                new Neighbor("Pune", 148),
+                new Neighbor("Nashik", 168),
+                new Neighbor("Sangli", 391)
+        ));
+
+        map.put("Nagpur", Arrays.asList(
+                new Neighbor("Solapur", 423),
+                new Neighbor("Amaravati", 152)
+        ));
+
+        map.put("Amaravati", Arrays.asList(
+                new Neighbor("Nagpur", 152),
+                new Neighbor("Sangli", 361)
+        ));
+
+        map.put("Sangli", Arrays.asList(
+                new Neighbor("Solapur", 220),
+                new Neighbor("Mumbai", 391),
+                new Neighbor("Amaravati", 361)
+        ));
+    }
+
+    private static List<String> aStarSearch(Map<String, List<Neighbor>> graph, String startCity, String goalCity) {
+        PriorityQueue<Node> openList = new PriorityQueue<>(Comparator.comparingInt(node -> node.fCost));
+        Map<String, Integer> gCosts = new HashMap<>();
+        Map<String, String> arrivedFrom = new HashMap<>();
+
+        openList.add(new Node(startCity, 0, estimateCost(startCity, goalCity)));
+        gCosts.put(startCity, 0);
+
+        while (!openList.isEmpty()) {
+            Node current = openList.poll();
+            String currentCity = current.city;
+
+            if (currentCity.equals(goalCity)) {
+                return reconstructPath(arrivedFrom, currentCity);
+            }
+
+            for (Neighbor neighbor : graph.getOrDefault(currentCity, Collections.emptyList())) {
+                String neighborCity = neighbor.city;
+                int tentativeG = gCosts.get(currentCity) + neighbor.distance;
+
+                if (!gCosts.containsKey(neighborCity) || tentativeG < gCosts.get(neighborCity)) {
+                    gCosts.put(neighborCity, tentativeG);
+                    arrivedFrom.put(neighborCity, currentCity);
+                    int fCost = tentativeG + estimateCost(neighborCity, goalCity);
+                    openList.add(new Node(neighborCity, tentativeG, fCost));
+                }
+            }
+        }
+
+        return null; // No path found
+    }
+
+    private static int estimateCost(String city, String goalCity) {
+        // Define heuristic values for all cities
+        Map<String, Integer> heuristicValues = new HashMap<>();
+        heuristicValues.put("Solapur", 0);
+        heuristicValues.put("Pune", 210);
+        heuristicValues.put("Nashik", 168);
+        heuristicValues.put("Mumbai", 220);
+        heuristicValues.put("Nagpur", 423);
+        heuristicValues.put("Amaravati", 361);
+        heuristicValues.put("Sangli", 220);
+
+        // Return the heuristic value for the given city
+        return heuristicValues.getOrDefault(city, 0);
+    }
+
+    private static List<String> reconstructPath(Map<String, String> arrivedFrom, String current) {
+        List<String> path = new ArrayList<>();
+        while (arrivedFrom.containsKey(current)) {
+            path.add(current);
+            current = arrivedFrom.get(current);
+        }
+        Collections.reverse(path);
+        return path;
+    }
+
+    static class Neighbor {
+        String city;
+        int distance;
+
+        Neighbor(String city, int distance) {
+            this.city = city;
+            this.distance = distance;
+        }
+    }
+
+    static class Node {
+        String city;
+        int gCost; // Cost from the start node to this node
+        int fCost; // gCost + heuristic estimate to the goal node
+
+        Node(String city, int gCost, int fCost) {
+            this.city = city;
+            this.gCost = gCost;
+            this.fCost = fCost;
+        }
+    }
+}
