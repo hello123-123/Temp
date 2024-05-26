@@ -1,21 +1,25 @@
 import java.util.*;
 
+// Class to represent the state of the jugs and the associated cost
 class State {
-    int jugA;
-    int jugB;
+    int jugA; // Amount of water in jug A
+    int jugB; // Amount of water in jug B
     int cost; // Total cost (g(n) + h(n))
 
+    // Constructor to initialize the state
     public State(int jugA, int jugB, int cost) {
         this.jugA = jugA;
         this.jugB = jugB;
         this.cost = cost;
     }
 
+    // Override hashCode to ensure State can be used in a HashSet
     @Override
     public int hashCode() {
         return 31 * jugA + jugB;
     }
 
+    // Override equals to ensure correct comparison of State objects
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
@@ -24,31 +28,40 @@ class State {
         return jugA == state.jugA && jugB == state.jugB;
     }
 
+
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
+
+        // Prompt user to enter capacities and target amount
         System.out.print("Enter the capacity of jug 1: ");
         int jugACapacity = scanner.nextInt();
         System.out.print("Enter the capacity of jug 2: ");
         int jugBCapacity = scanner.nextInt();
         System.out.print("Enter the target amount of water: ");
         int targetAmount = scanner.nextInt();
+
         scanner.close();
 
+        // Call the method to solve the water jug problem
         solveWaterJugProblem(jugACapacity, jugBCapacity, targetAmount);
     }
 
     private static void solveWaterJugProblem(int jugACapacity, int jugBCapacity, int targetAmount) {
+        // Priority queue to store the states, ordered by cost
         PriorityQueue<State> priorityQueue = new PriorityQueue<>(Comparator.comparingInt(state -> state.cost));
+        // Set to keep track of visited states
         Set<State> visited = new HashSet<>();
 
+        // Initialize the initial state with both jugs empty and cost 0
         State initialState = new State(0, 0, 0);
         priorityQueue.offer(initialState);
         visited.add(initialState);
 
+        // Loop until the priority queue is empty
         while (!priorityQueue.isEmpty()) {
             State currentState = priorityQueue.poll();
 
-            // Check if the target amount is reached
+            // Check if the target amount is reached in either jug
             if (currentState.jugA == targetAmount || currentState.jugB == targetAmount) {
                 System.out.println("Solution found: (" + currentState.jugA + ", " + currentState.jugB + ")");
                 return;
@@ -65,11 +78,14 @@ class State {
                     Math.min(jugBCapacity, currentState.jugA + currentState.jugB), currentState.cost + 1), currentState);
         }
 
+        // If no solution is found
         System.out.println("Solution not found.");
     }
 
     private static void exploreMove(PriorityQueue<State> priorityQueue, Set<State> visited, State nextState, State currentState) {
+        // Check if the next state has not been visited
         if (!visited.contains(nextState)) {
+            // Add the next state to the priority queue and mark it as visited
             priorityQueue.offer(nextState);
             visited.add(nextState);
             // Print the state transition
