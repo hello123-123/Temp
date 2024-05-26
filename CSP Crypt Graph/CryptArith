@@ -1,0 +1,96 @@
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.Set;
+
+class CSP {
+    private String term1, term2, term3; // Terms of the cryptarithmetic problem
+    private Set<Character> allUniqueLetters; // Set of all unique letters in the terms
+    private Set<Character> uniqueLetters; // Set of unique letters used in the current problem instance
+    private Map<Character, Integer> assignment; // Mapping of letters to their assigned digits
+
+    // Constructor to initialize the CSP with terms
+    CSP(String term1, String term2, String term3) {
+        this.term1 = term1;
+        this.term2 = term2;
+        this.term3 = term3;
+        allUniqueLetters = new HashSet<>();
+        assignment = new HashMap<>();
+        // Extract all unique letters from the terms
+        for (char c : (term1 + term2 + term3).toCharArray()) {
+            if (Character.isAlphabetic(c)) {
+                allUniqueLetters.add(c);
+            }
+        }
+        uniqueLetters = new HashSet<>(allUniqueLetters);
+    }
+
+    // Method to solve the cryptarithmetic problem
+    public void solveCryptarithmetic() {
+        // Attempt to solve the problem using backtracking
+        if (backtrack(uniqueLetters, assignment, term1, term2, term3, 0)) {
+            System.out.println("Solution found:");
+            // Print the assignments for each letter
+            for (char letter : allUniqueLetters) {
+                System.out.println(letter + " = " + assignment.get(letter));
+            }
+        } else {
+            System.out.println("No solution found.");
+        }
+    }
+
+    // Backtracking algorithm to solve the cryptarithmetic problem
+    private boolean backtrack(Set<Character> uniqueLetters, Map<Character, Integer> assignment, String term1, String term2, String term3, int currentIndex) {
+        // Base case: if all letters have been assigned
+        if (currentIndex == uniqueLetters.size()) {
+            // Evaluate the terms and check if the equation holds true
+            int value1 = evaluateTerm(term1, assignment);
+            int value2 = evaluateTerm(term2, assignment);
+            int value3 = evaluateTerm(term3, assignment);
+            return value1 + value2 == value3;
+        }
+
+        // Recursive case: assign digits to remaining letters
+        char currentLetter = (char) uniqueLetters.toArray()[currentIndex];
+        for (int digit = 0; digit <= 9; digit++) {
+            // Check if the digit is not already assigned
+            if (!assignment.containsValue(digit)) {
+                assignment.put(currentLetter, digit); // Assign the digit to the letter
+                // Recursively backtrack with the updated assignment
+                if (backtrack(uniqueLetters, assignment, term1, term2, term3, currentIndex + 1)) {
+                    return true; // If a solution is found, return true
+                }
+                assignment.remove(currentLetter); // Remove the assignment for backtracking
+            }
+        }
+        return false; // If no solution is found, return false
+    }
+
+    // Method to evaluate a term based on the assignment of digits to letters
+    private static int evaluateTerm(String term, Map<Character, Integer> assignment) {
+        int value = 1;
+        char[] terms = term.toCharArray();
+        int product = assignment.get(terms[terms.length - 1]); // Initialize with the least significant digit
+        // Evaluate each digit in the term
+        for (int i = terms.length - 2; i >= 0; i--) {
+            product += (int) (Math.pow(10, value++) * assignment.get(terms[i]));
+        }
+        return product; // Return the evaluated value of the term
+    }
+
+    // Main method to execute the program
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter the first term: ");
+        String term1 = scanner.next();
+        System.out.print("Enter the second term: ");
+        String term2 = scanner.next();
+        System.out.print("Enter the third term: ");
+        String term3 = scanner.next();
+        // Create an instance of CSP and solve the cryptarithmetic problem
+        CSP problem1 = new CSP(term1, term2, term3);
+        problem1.solveCryptarithmetic();
+        scanner.close();
+    }
+}
