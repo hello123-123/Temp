@@ -1,0 +1,162 @@
+// 8puzzle DFS j
+import java.util.*;
+class DFS {
+
+    // Define possible moves: right, down, left, and up
+    static int[][] moves = { {0, 1}, {1, 0}, {0, -1}, {-1, 0} };
+
+    // Check if the current state matches the goal state
+    static boolean isGoal(int[][] initial, int[][] goal) {
+        return Arrays.deepEquals(initial, goal); // Check if two 2D arrays are equal
+    }
+
+    // Find the position of the empty tile (represented by 0)
+    static int[] findEmptyPosition(int[][] grid) {
+        for (int i = 0; i < grid.length; i++) { // Iterate through rows
+            for (int j = 0; j < grid[i].length; j++) { // Iterate through columns
+                if (grid[i][j] == 0) { // Check if the current element is the empty tile
+                    return new int[] {i, j}; // Return the position of the empty tile
+                }
+            }
+        }
+        return null; // Return null if no empty tile is found (should not happen)
+    }
+
+    // Create a deep copy of a 2D array
+    static int[][] copyArray(int[][] grid) {
+        int[][] matrix = new int[grid.length][]; // Create a new 2D array with the same size
+        for (int i = 0; i < matrix.length; i++) { // Iterate through rows
+            matrix[i] = Arrays.copyOf(grid[i], grid[i].length); // Copy each row
+        }
+        return matrix; // Return the copied array
+    }
+
+    // Convert the board to a string representation for easy comparison
+    static String boardToString(int[][] board) {
+        StringBuilder sb = new StringBuilder(); // Create a StringBuilder to construct the string
+        for (int[] row : board) { // Iterate through rows
+            for (int cell : row) { // Iterate through cells
+                sb.append(cell).append(','); // Append each cell value followed by a comma
+            }
+        }
+        return sb.toString(); // Return the constructed string
+    }
+
+    // Solve the puzzle using Depth-First Search
+    static List<String> solve(int[][] initial, int[][] goal) {
+        int n = initial.length; // Get the size of the grid
+        Stack<int[][]> stack = new Stack<>(); // Create a stack for DFS
+        Map<String, int[][]> parentMap = new HashMap<>(); // Map to store parent state for path reconstruction
+        Set<String> visited = new HashSet<>(); // Set to store visited states
+
+        stack.add(initial); // Add the initial state to the stack
+        parentMap.put(boardToString(initial), null); // Add the initial state to the parent map with no parent
+        visited.add(boardToString(initial)); // Mark the initial state as visited
+
+        while (!stack.isEmpty()) { // Loop until the stack is empty
+            int[][] curr = stack.pop(); // Pop the top state from the stack
+
+            if (isGoal(curr, goal)) { // Check if the current state is the goal
+                return Path(parentMap, curr); // Reconstruct and return the path
+            }
+
+            int[] emptyPos = findEmptyPosition(curr); // Find the position of the empty tile
+            int emptyRow = emptyPos[0]; // Get the row of the empty tile
+            int emptyCol = emptyPos[1]; // Get the column of the empty tile
+
+            for (int[] move : moves) { // Iterate through possible moves
+                int newRow = emptyRow + move[0]; // Calculate new row position
+                int newCol = emptyCol + move[1]; // Calculate new column position
+
+                // Check if the new position is within the bounds of the grid
+                if (newRow >= 0 && newRow < n && newCol >= 0 && newCol < n) {
+                    int[][] next = copyArray(curr); // Create a copy of the current state
+
+                    // Swap the empty tile with the adjacent tile
+                    next[emptyRow][emptyCol] = curr[newRow][newCol];
+                    next[newRow][newCol] = 0;
+
+                    String nextString = boardToString(next); // Convert the new state to a string
+                    if (!visited.contains(nextString)) { // Check if the new state has not been visited
+                        parentMap.put(nextString, curr); // Add the new state to the parent map
+                        stack.add(next); // Push the new state onto the stack
+                        visited.add(nextString); // Mark the new state as visited
+                    }
+                }
+            }
+        }
+        return null; // Return null if no solution is found
+    }
+
+    // Reconstruct the path from the initial state to the goal state
+    static List<String> Path(Map<String, int[][]> parentMap, int[][] goal) {
+        List<String> road = new ArrayList<>(); // List to store the path
+        String goalString = boardToString(goal); // Convert the goal state to a string
+        int[][] cur = goal; // Start from the goal state
+
+        while (parentMap.get(goalString) != null) { // Loop until the initial state is reached
+            int[][] parent = parentMap.get(goalString); // Get the parent state
+            int[] emptyPos = findEmptyPosition(cur); // Find the position of the empty tile in the current state
+            int[] parentEmptyPos = findEmptyPosition(parent); // Find the position of the empty tile in the parent state
+
+            // Determine the direction of the move
+            int rowDiff = parentEmptyPos[0] - emptyPos[0];
+            int colDiff = parentEmptyPos[1] - emptyPos[1];
+
+            if (rowDiff == 1) road.add("U"); // Move up
+            else if (rowDiff == -1) road.add("D"); // Move down
+            else if (colDiff == 1) road.add("L"); // Move left
+            else if (colDiff == -1) road.add("R"); // Move right
+
+            cur = parent; // Move to the parent state
+            goalString = boardToString(cur); // Update the goalString to the parent state
+        }
+
+        Collections.reverse(road); // Reverse the path to get the correct order
+        return road; // Return the path
+    }
+
+    public static void main(String[] args) {
+        // Initial state
+        // int[][] initial = {
+        //     {1, 2, 3},
+        //     {4, 0, 5},
+        //     {6, 7, 8}
+        // };
+
+        // // Goal state
+        // int[][] goal = {
+        //     {1, 2, 3},
+        //     {4, 5, 6},
+        //     {7, 8, 0}
+        // };
+      
+      
+        Scanner scanner = new Scanner(System.in);
+
+        // Input initial state from the user
+        System.out.println("Enter the initial state of the puzzle (3x3 grid):");
+        int[][] initial = new int[3][3];
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                initial[i][j] = scanner.nextInt();
+            }
+        }
+
+        // Input goal state from the user
+        System.out.println("Enter the goal state of the puzzle (3x3 grid):");
+        int[][] goal = new int[3][3];
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                goal[i][j] = scanner.nextInt();
+            }
+        }
+
+        List<String> path = solve(initial, goal); // Solve the puzzle
+        if (path != null) { // Check if a solution is found
+            System.out.println("Optimal path: " + path); // Print the path if found
+        } else {
+            System.out.println("No solution found."); // Print a message if no solution is found
+        }
+    }
+}
