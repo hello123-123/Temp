@@ -1,0 +1,14 @@
+% Base case: An empty list and a single-element list are palindromes.
+palindrome([]).
+palindrome([_]).
+
+% Recursive case: The list is a palindrome if the first and last elements are the same,
+% and the remaining sublist is also a palindrome.
+palindrome([H|T]) :-
+    append(Mid, [H], T),
+    palindrome(Mid).
+
+% Queries
+% ?- palindrome([r, a, c, e, c, a, r]).
+% ?- palindrome([1, 2, 3, 2, 1]).
+% ?- palindrome([a, b, c]).
