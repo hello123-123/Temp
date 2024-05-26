@@ -1,0 +1,119 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+using namespace std;
+
+// Class to represent a pair of integers (j1, j2) and store the path
+class Pair {
+public:
+    int j1, j2;
+    vector<Pair> path; // Stores the path of states
+
+    // Constructors
+    Pair(int j1, int j2) {
+        this->j1 = j1;
+        this->j2 = j2;
+    }
+
+    Pair(int j1, int j2, vector<Pair> _path) {
+        this->j1 = j1;
+        this->j2 = j2;
+        path = _path;
+        path.push_back(Pair(j1, j2));
+    }
+};
+
+// Function to find the path of states to achieve the target amount of water
+void getPathIfPossible(int jug1, int jug2, int target) {
+    // Create a 2D boolean array to mark visited states
+    vector<vector<bool>> visited(jug1 + 1, vector<bool>(jug2 + 1, false));
+    // Create a queue for BFS
+    queue<Pair> queue;
+
+    // Initial State: Both Jugs are empty, so initialize j1 j2 as 0 and put it in the path list
+    Pair initialState(0, 0);
+    initialState.path.push_back(Pair(0, 0));
+    queue.push(initialState);
+
+    // BFS Loop
+    while (!queue.empty()) {
+        Pair curr = queue.front();
+        queue.pop();
+
+        // Skip already visited states and overflowing water states
+        if (curr.j1 > jug1 || curr.j2 > jug2 || visited[curr.j1][curr.j2]) {
+            continue;
+        }
+
+        // Mark current jugs state as visited
+        visited[curr.j1][curr.j2] = true;
+
+        // Check if current state has already reached the target amount of water or not
+        if (curr.j1 == target || curr.j2 == target) {
+            if (curr.j1 == target) {
+                // If jug1 holds the required amount of water, empty jug2 and push it into the path
+                curr.path.push_back(Pair(curr.j1, 0));
+            } else {
+                // If jug2 holds the required amount of water, empty jug1 and push it into the path
+                curr.path.push_back(Pair(0, curr.j2));
+            }
+            // Print the path of states followed
+            int n = curr.path.size();
+            cout << "Path of states of jugs followed is:\n";
+            for (int i = 0; i < n; i++)
+                cout << curr.path[i].j1 << " , " << curr.path[i].j2 << endl;
+            return;
+        }
+
+        // Generate next states by filling, emptying, or transferring water between the jugs
+
+        // I. Fill the jug and Empty the other
+        queue.push(Pair(jug1, 0, curr.path));
+        queue.push(Pair(0, jug2, curr.path));
+
+        // II. Fill the jug and let the other remain untouched
+        queue.push(Pair(jug1, curr.j2, curr.path));
+        queue.push(Pair(curr.j1, jug2, curr.path));
+
+        // III. Empty the jug and let the other remain untouched
+        queue.push(Pair(0, curr.j2, curr.path));
+        queue.push(Pair(curr.j1, 0, curr.path));
+
+        // IV. Transfer water from one jug to another until one becomes empty or full
+
+        // Transfer water from jug1 to jug2
+        int emptyJug = jug2 - curr.j2;
+        int amountTransferred = min(curr.j1, emptyJug);
+        int j2 = curr.j2 + amountTransferred;
+        int j1 = curr.j1 - amountTransferred;
+        queue.push(Pair(j1, j2, curr.path));
+
+        // Transfer water from jug2 to jug1
+        emptyJug = jug1 - curr.j1;
+        amountTransferred = min(curr.j2, emptyJug);
+        j2 = curr.j2 - amountTransferred;
+        j1 = curr.j1 + amountTransferred;
+        queue.push(Pair(j1, j2, curr.path));
+    }
+
+    // If the target amount is not reached, print "Not Possible to obtain target"
+    cout << "Not Possible to obtain target\n";
+}
+
+// Main function
+int main() {
+    int jug1, jug2, target;
+
+    // User input for jug capacities and target amount
+    cout << "Enter the capacity of jug 1: ";
+    cin >> jug1;
+    cout << "Enter the capacity of jug 2: ";
+    cin >> jug2;
+    cout << "Enter the target amount of water: ";
+    cin >> target;
+
+    // Call the function to find the path to achieve the target amount
+    getPathIfPossible(jug1, jug2, target);
+
+    return 0;
+}
