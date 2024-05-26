@@ -1,0 +1,88 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <cmath>
+
+using namespace std;
+
+// Define a state representation for the N-Queens problem
+struct State {
+    vector<int> queens; // queens[i] represents the column position of the queen in row i
+
+    // Calculate the heuristic value (number of attacking queen pairs)
+    int calculateHeuristic() const {
+        int heuristic = 0;
+        int n = queens.size();
+
+        // Iterate through all pairs of queens
+        for (int i = 0; i < n; ++i) {
+            for (int j = i + 1; j < n; ++j) {
+                // Check if the queens attack each other (in the same row or diagonally)
+                if (queens[i] == queens[j] || abs(queens[i] - queens[j]) == abs(i - j)) {
+                    heuristic++; // Increment heuristic if they attack each other
+                }
+            }
+        }
+
+        return heuristic;
+    }
+
+    // Overload the less than operator for priority queue ordering
+    bool operator<(const State& other) const {
+        return calculateHeuristic() > other.calculateHeuristic(); // Max heap, lower heuristic is preferred
+    }
+};
+
+// Best-first search algorithm
+bool solveNQueens(int n) {
+    priority_queue<State> pq; // Priority queue to store states, ordered by heuristic value
+    State initial;
+    initial.queens.resize(n); // Resize the queens vector to hold n elements
+
+    pq.push(initial); // Push the initial state onto the priority queue
+
+    while (!pq.empty()) { // Continue until the priority queue is empty
+        State current = pq.top(); // Retrieve the state with the lowest heuristic value (top of the priority queue)
+        pq.pop(); // Remove the retrieved state from the priority queue
+
+        if (current.calculateHeuristic() == 0) {
+            // Solution found: all queens are placed without attacking each other
+            for (int i = 0; i < n; ++i) {
+                for (int j = 0; j < n; ++j) {
+                    // Print 'Q' for queens and '.' for empty squares
+                    cout << (current.queens[i] == j ? "Q" : ".");
+                }
+                cout << endl; // Move to the next row
+            }
+            return true; // Return true to indicate that a solution has been found
+        }
+
+        // Generate next states by moving one queen at a time to all possible positions in each row
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < n; ++j) {
+                State next = current; // Create a copy of the current state
+                next.queens[i] = j; // Move the queen in row i to column j
+                pq.push(next); // Push the new state onto the priority queue
+            }
+        }
+    }
+
+    // No solution found
+    return false;
+}
+
+// Main function
+int main() {
+    int n;
+    cout << "Enter the number of queens (N): \n";
+    cin >> n; // Read the number of queens from the user
+
+    // Call the solveNQueens function to solve the N-Queens problem
+    if (solveNQueens(n)) {
+        cout << "Solution found!" << endl; // Print a message if a solution is found
+    } else {
+        cout << "No solution exists." << endl; // Print a message if no solution is found
+    }
+
+    return 0; // Return 0 to indicate successful program execution
+}
