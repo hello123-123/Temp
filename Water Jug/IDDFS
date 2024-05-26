@@ -1,0 +1,79 @@
+import java.util.*;
+
+public class WaterJugIDDFS {
+
+    static class Node {
+        int x;
+        int y;
+        List<Node> path;
+
+        public Node(int x, int y, List<Node> path) {
+            this.x = x;
+            this.y = y;
+            this.path = new ArrayList<>(path);
+            this.path.add(this);
+        }
+    }
+
+    public static boolean solveIDDFS(int jug1, int jug2, int targetX, int targetY) {
+        int depth = 0;
+        while (true) {
+            Set<String> visited = new HashSet<>();
+            Node startNode = new Node(0, 0, new ArrayList<>());
+            boolean result = dls(startNode, jug1, jug2, targetX, targetY, depth, visited);
+            if (result) {
+                return true;
+            }
+            depth++;
+        }
+    }
+
+    private static boolean dls(Node current, int jug1, int jug2, int targetX, int targetY, int depth, Set<String> visited) {
+        if (depth < 0) {
+            return false;
+        }
+
+        int curX = current.x;
+        int curY = current.y;
+        visited.add(curX + "," + curY);
+
+        // If we reach the target
+        if (curX == targetX && curY == targetY) {
+            for (Node node : current.path) {
+                System.out.println("(" + node.x + "," + node.y + ")");
+            }
+            return true;
+        }
+
+        List<Node> nextStates = Arrays.asList(
+            new Node(jug1, curY, current.path),    // Fill jug1
+            new Node(curX, jug2, current.path),    // Fill jug2
+            new Node(0, curY, current.path),       // Empty jug1
+            new Node(curX, 0, current.path),       // Empty jug2
+            new Node(Math.min(jug1, curX + curY), curY - (Math.min(jug1, curX + curY) - curX), current.path),  // Pour jug2 -> jug1
+            new Node(curX - (Math.min(jug2, curX + curY) - curY), Math.min(jug2, curX + curY), current.path)   // Pour jug1 -> jug2
+        );
+
+        for (Node next : nextStates) {
+            if (!visited.contains(next.x + "," + next.y) && dls(next, jug1, jug2, targetX, targetY, depth - 1, visited)) {
+                return true;
+            }
+        }
+
+        visited.remove(curX + "," + curY);
+        return false;  // No solution found
+    }
+
+    public static void main(String[] args) {
+        int jug1 = 4;
+        int jug2 = 3;
+        int targetX = 2;
+        int targetY = 0;
+
+        boolean result = solveIDDFS(jug1, jug2, targetX, targetY);
+
+        if (!result) {
+            System.out.println("No solution found.");
+        }
+    }
+}
