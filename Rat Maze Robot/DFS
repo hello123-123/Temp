@@ -1,0 +1,82 @@
+//  RatMAze DFS
+import java.util.List;
+import java.util.ArrayList;
+
+public class RatMazeDfs {
+    static int[][] maze; // The maze grid
+    static int N, M; // Dimensions of the maze
+
+    // Function to find the path through the maze using DFS
+    public static List<int[]> findPath(int[][] ipMaze) {
+        maze = ipMaze; // Set the maze grid
+        N = maze.length; // Number of rows in the maze
+        M = maze[0].length; // Number of columns in the maze
+
+        List<int[]> path = new ArrayList<>(); // Initialize a list to store the path of cells
+        boolean[][] visited = new boolean[N][M]; // Initialize a boolean array to keep track of visited cells
+
+        // Call the DFS function to find the path
+        if (dfs(0, 0, path, visited)) {
+            return path; // Return the path if found
+        }
+        return null; // Return null if no path is found
+    }
+
+    // DFS function to find the path through the maze
+    public static boolean dfs(int row, int col, List<int[]> path, boolean[][] visited) {
+        // Check if the current cell is out of bounds, blocked, or already visited
+        if (row < 0 || col < 0 || row >= N || col >= M || maze[row][col] == 1 || visited[row][col]) {
+            return false; // Return false if the cell is invalid
+        }
+
+        // Add the current cell to the path and mark it as visited
+        path.add(new int[] { row, col });
+        visited[row][col] = true;
+
+        // If the current cell is the destination, return true
+        if (row == N - 1 && col == M - 1) {
+            return true;
+        }
+
+        // Explore all four directions recursively
+        if (dfs(row + 1, col, path, visited) || dfs(row, col + 1, path, visited) || dfs(row - 1, col, path, visited)
+                || dfs(row, col - 1, path, visited)) {
+            return true;
+        }
+
+        path.remove(path.size() - 1); // Remove the last visited cell from the path
+        return false; // Return false if no path is found
+    }
+
+    // Main method
+    public static void main(String[] args) {
+        // Define the maze grid
+        int[][] maze = {
+            { 0, 1, 0, 0 },
+            { 0, 0, 1, 0 },
+            { 0, 0, 0, 0 },
+            { 1, 0, 0, 0 },
+        };
+
+        // Print the maze
+        for (int i = 0; i < maze.length; i++) {
+            for (int j = 0; j < maze[i].length; j++) {
+                System.out.print(" " + maze[i][j] + " ");
+            }
+            System.out.println();
+        }
+
+        // Find the path through the maze using DFS
+        List<int[]> path = findPath(maze);
+
+        // Print the path if found
+        if (path != null) {
+            System.out.println("Path found!!");
+            for (int[] temp : path) {
+                System.out.println(temp[0] + "," + temp[1]); // Print each cell in the path
+            }
+        } else {
+            System.out.println("Path Not Found!");
+        }
+    }
+}
