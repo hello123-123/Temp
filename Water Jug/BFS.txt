@@ -1,0 +1,147 @@
+import java.util.*;
+
+public class WaterJugDFS {
+    public static int total = 0;  // Counter for the total number of nodes visited
+
+    // Node class to represent the state of the jugs
+    static class Node {
+        int x;  // Water amount in the first jug
+        int y;  // Water amount in the second jug
+
+        public Node(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+    }
+
+    static Stack<Node> result = new Stack<Node>();  // Stack to store the result path
+    static boolean[][] m;  // Visited states matrix
+    static int found = 0;  // Indicator to check if the solution is found
+
+    // DFS function to solve the water jug problem
+    static boolean solveDFS(int curj1, int curj2, int jug1, int jug2, int tx, int ty) {
+        // Base case: check if the current state matches the target state
+        if (curj1 == tx && curj2 == ty) {
+            result.add(new Node(curj1, curj2));  // Add the final state to the result
+            return true;
+        }
+        
+        total++;  // Increment the total nodes visited
+
+        // Check if the current state is already visited
+        if (m[curj1][curj2]) {
+            return false;
+        }
+        
+        // Mark the current state as visited
+        m[curj1][curj2] = true;
+
+        // Try filling the first jug completely
+        if (curj1 < jug1 && solveDFS(jug1, curj2, jug1, jug2, tx, ty)) {
+            result.add(new Node(curj1, curj2));
+            return true;
+        }
+        
+        // Try filling the second jug completely
+        if (curj2 < jug2 && solveDFS(curj1, jug2, jug1, jug2, tx, ty)) {
+            result.add(new Node(curj1, curj2));
+            return true;
+        }
+        
+        // Try emptying the first jug
+        if (curj1 > 0 && solveDFS(0, curj2, jug1, jug2, tx, ty)) {
+            result.add(new Node(curj1, curj2));
+            return true;
+        }
+        
+        // Try emptying the second jug
+        if (curj2 > 0 && solveDFS(curj1, 0, jug1, jug2, tx, ty)) {
+            result.add(new Node(curj1, curj2));
+            return true;
+        }
+        
+        // Try pouring water from the first jug into the second jug
+        if (curj1 > 0 && curj2 < jug2) {
+            boolean temp;
+            if (curj2 + curj1 <= jug2) {
+                // If the combined amount fits into the second jug
+                temp = solveDFS(0, curj1 + curj2, jug1, jug2, tx, ty);
+            } else {
+                // If it overflows, pour as much as possible into the second jug
+                temp = solveDFS(curj1 - (jug2 - curj2), jug2, jug1, jug2, tx, ty);
+            }
+            if (temp) {
+                result.add(new Node(curj1, curj2));
+                return true;
+            }
+        }
+        
+        // Try pouring water from the second jug into the first jug
+        if (curj2 > 0 && curj1 < jug1) {
+            boolean temp;
+            if (curj2 + curj1 <= jug1) {
+                // If the combined amount fits into the first jug
+                temp = solveDFS(curj1 + curj2, 0, jug1, jug2, tx, ty);
+            } else {
+                // If it overflows, pour as much as possible into the first jug
+                temp = solveDFS(jug1, curj2 - (jug1 - curj1), jug1, jug2, tx, ty);
+            }
+            if (temp) {
+                result.add(new Node(curj1, curj2));
+                return true;
+            }
+        }
+
+        // Unmark the current state before backtracking
+        m[curj1][curj2] = false;
+        return false;
+    }
+
+    // Function to print the stack in reverse order
+    public static void printReverseStack(Stack<Node> stack) {
+        // Base case: if the stack is empty, return
+        if (stack.isEmpty()) return;
+
+        // Create a temporary stack to hold the elements
+        Stack<Node> temporaryStack = new Stack<>();
+
+        // Copy all the elements from the given stack to the temporary stack
+        while (stack.size() > 0) {
+            temporaryStack.push(stack.pop());
+        }
+
+        // Print the elements in the temporary stack
+        for (Node n : temporaryStack) {
+            System.out.println("(" + n.x + "," + n.y + ")");
+        }
+    }
+
+    // Main function to run the DFS algorithm
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print("Enter the capacity of the first jug: ");
+        int jug1 = scanner.nextInt();
+        System.out.print("Enter the capacity of the second jug: ");
+        int jug2 = scanner.nextInt();
+        System.out.print("Enter the target amount for the first jug: ");
+        int tx = scanner.nextInt();
+        System.out.print("Enter the target amount for the second jug: ");
+        int ty = scanner.nextInt();
+
+        m = new boolean[jug1 + 1][jug2 + 1];  // Initialize the visited states matrix with appropriate size
+
+        boolean res = solveDFS(0, 0, jug1, jug2, tx, ty);
+
+        if (res) {
+            System.out.println("Solution path:");
+            printReverseStack(result);
+        } else {
+            System.out.println("No solution found.");
+        }
+        
+        System.out.println("Total Nodes: " + total);
+
+        scanner.close();
+    }
+}
