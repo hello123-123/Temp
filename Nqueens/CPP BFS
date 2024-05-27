@@ -1,0 +1,68 @@
+// Nquenns Using BFS
+#include <iostream>
+#include <vector>
+#include <queue>
+
+using namespace std;
+
+struct State {
+    vector<int> queens; // queens[i] = row of queen in column i
+    int col; // current column being processed
+
+    State(int n) : queens(n, -1), col(0) {}
+    State(const State& s, int row) : queens(s.queens), col(s.col + 1) {
+        queens[col] = row;
+    }
+};
+
+int n;
+int solutionCount = 0;
+
+bool isSafe(const State& state, int row) {
+    for (int c = 0; c < state.col; c++) {
+        int r = state.queens[c];
+        if (r == row || abs(r - row) == abs(c - state.col)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void printChessboard(const vector<int>& queens) {
+    for (int row = 0; row < n; row++) {
+        for (int col = 0; col < n; col++) {
+            cout << (queens[col] == row ? "Q " : ". ");
+        }
+        cout << endl;
+    }
+    cout << "-----------------\n";
+}
+
+void solveNQueensBFS() {
+    queue<State> q;
+    q.push(State(n));
+
+    while (!q.empty()) {
+        State state = q.front();
+        q.pop();
+
+        if (state.col == n) {
+            printChessboard(state.queens);
+            solutionCount++;
+            continue;
+        }
+
+        for (int row = 0; row < n; row++) {
+            if (isSafe(state, row)) {
+                q.push(State(state, row));
+            }
+        }
+    }
+}
+
+int main() {
+    cin >> n;
+    solveNQueensBFS();
+    cout << "Total solutions: " << solutionCount << endl;
+    return 0;
+}
