@@ -1,0 +1,65 @@
+import java.util.Scanner;
+
+public class NQueensIDDFS {
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Enter the number of queens (n): ");
+        int n = sc.nextInt();
+        sc.close();
+
+        for (int depth = 0; depth <= n; depth++) {
+            if (depthLimitedSearch(new int[n], 0, depth, n)) {
+                return;
+            }
+        }
+
+        System.out.println("Solution not found.");
+    }
+
+    private static boolean depthLimitedSearch(int[] board, int row, int limit, int n) {
+        if (row == n) {
+            printSolution(board);
+            return true;
+        }
+
+        if (row > limit) {
+            return false;
+        }
+
+        for (int col = 0; col < n; col++) {
+            if (isSafe(board, row, col)) {
+                board[row] = col;
+                if (depthLimitedSearch(board, row + 1, limit, n)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private static boolean isSafe(int[] board, int row, int col) {
+        for (int i = 0; i < row; i++) {
+            if (board[i] == col || Math.abs(board[i] - col) == Math.abs(i - row)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static void printSolution(int[] board) {
+        int n = board.length;
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                if (board[i] == j) {
+                    System.out.print("Q ");
+                } else {
+                    System.out.print(". ");
+                }
+            }
+            System.out.println();
+        }
+        System.out.println();
+    }
+}
