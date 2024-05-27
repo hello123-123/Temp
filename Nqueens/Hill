@@ -107,3 +107,11 @@ public class HillClimbingWithRandomRestart {
         }
     }
 }
+//Iteration:
+//It iterates through multiple cycles of improvement attempts.
+//In each iteration, it generates all possible neighboring board configurations by moving one queen at a time to another row within its column.
+//It evaluates each neighboring configuration to find the one with the minimum number of conflicts (queens threatening each other).
+//If the best neighboring configuration has fewer conflicts than the current configuration, it moves to that configuration and repeats the process. Otherwise, it stops and considers the current configuration as a local minimum.
+//Random Restart:
+//If it reaches a local minimum without finding a solution (zero conflicts), it performs a random restart by generating a new random board configuration and repeats the iteration process.
+//This random restart mechanism allows the algorithm to escape local minima and explore different regions of the search space.
