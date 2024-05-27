@@ -1,4 +1,4 @@
-// animal
+%animal
 % Define facts about animals and their habitats.
 habitat(dog, land).
 habitat(cat, land).
