@@ -1,0 +1,125 @@
+#include <iostream>
+#include <vector>
+#include <set>
+using namespace std;
+
+class State {
+public:
+    int missionariesLeft;
+    int cannibalsLeft;
+    int missionariesRight;
+    int cannibalsRight;
+    bool boat; // True means boat is on the left bank, False means boat is on the right bank
+    vector<State> path; // To store the path leading to this state
+    // Constructor
+    State(int ml, int cl, int mr, int cr, bool b) 
+        : missionariesLeft(ml), cannibalsLeft(cl), missionariesRight(mr), cannibalsRight(cr), boat(b) {}
+
+    // Overloading the less than operator for set comparison
+    bool operator<(const State& s) const {
+        return missionariesLeft < s.missionariesLeft ||
+               (missionariesLeft == s.missionariesLeft && cannibalsLeft < s.cannibalsLeft) ||
+               (missionariesLeft == s.missionariesLeft && cannibalsLeft == s.cannibalsLeft && missionariesRight < s.missionariesRight) ||
+               (missionariesLeft == s.missionariesLeft && cannibalsLeft == s.cannibalsLeft && missionariesRight == s.missionariesRight && cannibalsRight < s.cannibalsRight) ||
+               (missionariesLeft == s.missionariesLeft && cannibalsLeft == s.cannibalsLeft && missionariesRight == s.missionariesRight && cannibalsRight == s.cannibalsRight && boat < s.boat);
+    }
+};
+
+bool isSafe(int missionaries, int cannibals) {
+    return (missionaries >= cannibals || missionaries == 0);
+}
+
+bool isValidState(const State& s) {
+    return s.missionariesLeft >= 0 && s.cannibalsLeft >= 0 && s.missionariesRight >= 0 && s.cannibalsRight >= 0 &&
+           s.missionariesLeft <= 3 && s.cannibalsLeft <= 3 && s.missionariesRight <= 3 && s.cannibalsRight <= 3 &&
+           isSafe(s.missionariesLeft, s.cannibalsLeft) && isSafe(s.missionariesRight, s.cannibalsRight);
+}
+
+bool isGoalState(const State& s) {
+    return s.missionariesLeft == 0 && s.cannibalsLeft == 0;
+}
+
+void printSolution(const vector<State>& path) {
+    for (const auto& state : path) {
+        cout << "Left: (" << state.missionariesLeft << "m," << state.cannibalsLeft << "c)  ";
+        if (state.boat)
+            cout << "Boat -> ";
+        else
+            cout << "<- Boat ";
+        cout << "Right: (" << state.missionariesRight << "m," << state.cannibalsRight << "c)" << endl;
+    }
+}
+
+bool dls(State currentState, int depth, set<State>& visited, const State& initial) {
+    if (depth == 0 && isGoalState(currentState)) {
+        printSolution(currentState.path);
+        return true;
+    }
+
+    if (depth > 0) {
+        // Generate all possible next states
+        vector<State> nextStates;
+        // If boat is on the left bank
+        if (currentState.boat) {
+            for (int i = 0; i <= 2; ++i) {
+                for (int j = 0; j <= 2; ++j) {
+                    if (i + j >= 1 && i + j <= 2) {
+                        State nextState(currentState.missionariesLeft - i, currentState.cannibalsLeft - j,
+                                        currentState.missionariesRight + i, currentState.cannibalsRight + j, false);
+                        if (isValidState(nextState) && visited.find(nextState) == visited.end()) {
+                            nextState.path = currentState.path;
+                            nextState.path.push_back(nextState);
+                            visited.insert(nextState);
+                            if (dls(nextState, depth - 1, visited, initial)) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // If boat is on the right bank
+        else {
+            for (int i = 0; i <= 2; ++i) {
+                for (int j = 0; j <= 2; ++j) {
+                    if (i + j >= 1 && i + j <= 2) {
+                        State nextState(currentState.missionariesLeft + i, currentState.cannibalsLeft + j,
+                                        currentState.missionariesRight - i, currentState.cannibalsRight - j, true);
+                        if (isValidState(nextState) && visited.find(nextState) == visited.end()) {
+                            nextState.path = currentState.path;
+                            nextState.path.push_back(nextState);
+                            visited.insert(nextState);
+                            if (dls(nextState, depth - 1, visited, initial)) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+void iddfs(State initial) {
+    set<State> visited;
+    initial.path.push_back(initial);
+
+    for (int depth = 0; depth <= 20; ++depth) { // Set an arbitrary depth limit
+        visited.clear();
+        visited.insert(initial);
+        if (dls(initial, depth, visited, initial)) {
+            return;
+        }
+    }
+
+    cout << "No solution found!\n";
+}
+
+int main() {
+    State initial(3, 3, 0, 0, true); // Initial state
+    cout << "Solution path:\n";
+    iddfs(initial);
+    return 0;
+}
