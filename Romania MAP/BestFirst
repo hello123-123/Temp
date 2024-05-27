@@ -55,7 +55,6 @@ public class RomaniaMapBestFirstSearch {
 
         map.put("Amaravati", Arrays.asList(
                 new Neighbor("Nagpur", 152),
-                new Neighbor("Sangli", 361),
                 new Neighbor("Dhule", 180)
         ));
         
