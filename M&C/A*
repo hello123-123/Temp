@@ -1,0 +1,145 @@
+//Missionary Using AStar
+
+#include <iostream> // Include iostream for input-output operations
+#include <vector> // Include vector for using the vector container
+#include <queue> // Include queue for using the priority queue
+#include <set> // Include set for using the set container
+#include <cmath> // Include cmath for using mathematical functions
+#include <functional> // Include functional for using std::function
+
+using namespace std;
+
+// Class to represent the state of the problem
+class State {
+public:
+    int missionariesLeft; // Number of missionaries on the left bank
+    int cannibalsLeft; // Number of cannibals on the left bank
+    int missionariesRight; // Number of missionaries on the right bank
+    int cannibalsRight; // Number of cannibals on the right bank
+    bool boat; // Boat position, true if on the left bank, false if on the right bank
+    vector<State> path; // To store the path leading to this state
+    
+    // Constructor
+    State(int ml, int cl, int mr, int cr, bool b) 
+        : missionariesLeft(ml), cannibalsLeft(cl), missionariesRight(mr), cannibalsRight(cr), boat(b) {}
+
+    // Overloading the less than operator for set comparison
+    bool operator<(const State& s) const {
+        return missionariesLeft < s.missionariesLeft ||
+               (missionariesLeft == s.missionariesLeft && cannibalsLeft < s.cannibalsLeft) ||
+               (missionariesLeft == s.missionariesLeft && cannibalsLeft == s.cannibalsLeft && missionariesRight < s.missionariesRight) ||
+               (missionariesLeft == s.missionariesLeft && cannibalsLeft == s.cannibalsLeft && missionariesRight == s.missionariesRight && cannibalsRight < s.cannibalsRight) ||
+               (missionariesLeft == s.missionariesLeft && cannibalsLeft == s.cannibalsLeft && missionariesRight == s.missionariesRight && cannibalsRight == s.cannibalsRight && boat < s.boat);
+    }
+};
+
+// Function to check if a state is safe (missionaries are not outnumbered by cannibals)
+bool isSafe(int missionaries, int cannibals) {
+    return (missionaries >= cannibals || missionaries == 0);
+}
+
+// Function to check if a state is valid
+bool isValidState(const State& s) {
+    return s.missionariesLeft >= 0 && s.cannibalsLeft >= 0 && s.missionariesRight >= 0 && s.cannibalsRight >= 0 &&
+           s.missionariesLeft <= 3 && s.cannibalsLeft <= 3 && s.missionariesRight <= 3 && s.cannibalsRight <= 3 &&
+           isSafe(s.missionariesLeft, s.cannibalsLeft) && isSafe(s.missionariesRight, s.cannibalsRight);
+}
+
+// Function to check if a state is the goal state
+bool isGoalState(const State& s) {
+    return s.missionariesLeft == 0 && s.cannibalsLeft == 0;
+}
+
+// Heuristic function for the A* algorithm
+int heuristic(const State& s) {
+    return s.missionariesLeft + s.cannibalsLeft + (s.boat ? 1 : 0); // Number of people on the left bank plus 1 if the boat is on the left bank
+}
+
+// Function to print the solution path
+void printSolution(const vector<State>& path) {
+    for (const auto& state : path) {
+        cout << "Left: (" << state.missionariesLeft << "m," << state.cannibalsLeft << "c)  ";
+        if (state.boat)
+            cout << "Boat -> ";
+        else
+            cout << "<- Boat ";
+        cout << "Right: (" << state.missionariesRight << "m," << state.cannibalsRight << "c)" << endl;
+    }
+}
+
+// A* algorithm to solve the missionaries and cannibals problem
+void astar(State initial) {
+    // Priority queue for A* search with custom comparator based on the heuristic function
+    priority_queue<State, vector<State>, function<bool(State, State)>> pq([](const State& a, const State& b) {
+        return heuristic(a) > heuristic(b); // Min-heap based on the heuristic function
+    });
+    set<State> visited; // Set to keep track of visited states
+    initial.path.push_back(initial); // Add the initial state to its path
+    pq.push(initial); // Push the initial state to the priority queue
+    visited.insert(initial); // Mark the initial state as visited
+
+    while (!pq.empty()) { // While there are states to process
+        State currentState = pq.top(); // Get the state with the lowest heuristic value
+        pq.pop(); // Remove the state from the priority queue
+
+        if (isGoalState(currentState)) { // Check if the current state is the goal state
+            printSolution(currentState.path); // Print the solution path
+            return; // Exit the function
+        }
+
+        // Generate all possible next states
+        vector<State> nextStates;
+        // If boat is on the left bank
+        if (currentState.boat) {
+            for (int i = 0; i <= 2; ++i) {
+                for (int j = 0; j <= 2; ++j) {
+                    if (i + j >= 1 && i + j <= 2) { // Only consider moving 1 or 2 people
+                        State nextState(currentState.missionariesLeft - i, currentState.cannibalsLeft - j,
+                                        currentState.missionariesRight + i, currentState.cannibalsRight + j, false);
+                        if (isValidState(nextState) && visited.find(nextState) == visited.end()) { // If the state is valid and not visited
+                            nextState.path = currentState.path; // Copy the path of the current state to the next state
+                            nextState.path.push_back(nextState); // Add the next state to its path
+                            nextStates.push_back(nextState); // Add the next state to the list of next states
+                        }
+                    }
+                }
+            }
+        }
+        // If boat is on the right bank
+        else {
+            for (int i = 0; i <= 2; ++i) {
+                for (int j = 0; j <= 2; ++j) {
+                    if (i + j >= 1 && i + j <= 2) { // Only consider moving 1 or 2 people
+                        State nextState(currentState.missionariesLeft + i, currentState.cannibalsLeft + j,
+                                        currentState.missionariesRight - i, currentState.cannibalsRight - j, true);
+                        if (isValidState(nextState) && visited.find(nextState) == visited.end()) { // If the state is valid and not visited
+                            nextState.path = currentState.path; // Copy the path of the current state to the next state
+                            nextState.path.push_back(nextState); // Add the next state to its path
+                            nextStates.push_back(nextState); // Add the next state to the list of next states
+                        }
+                    }
+                }
+            }
+        }
+
+        // Enqueue all next states
+        for (const auto& nextState : nextStates) {
+            visited.insert(nextState); // Mark the next state as visited
+            pq.push(nextState); // Add the next state to the priority queue
+        }
+    }
+
+    cout << "No solution found!\n"; // If no solution is found, print a message
+}
+
+int main() {
+    int ml, cl, mr, cr;
+    cout << "Enter the number of missionaries and cannibals on the left bank (separated by space): ";
+    cin >> ml >> cl;
+    cout << "Enter the number of missionaries and cannibals on the right bank (separated by space): ";
+    cin >> mr >> cr;
+    State initial(ml, cl, mr, cr, true); // Initial state
+    cout << "Solution path:\n"; // Print the solution path
+    astar(initial); // Call the A* algorithm to solve the problem
+    return 0; // Return 0 to indicate successful execution
+}
