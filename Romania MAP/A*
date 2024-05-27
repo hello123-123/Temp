@@ -22,7 +22,7 @@ public class RomaniaMapAStar {
     private static void initializeMap() {
         map.put("Solapur", Arrays.asList(
                 new Neighbor("Pune", 243),
-                new Neighbor("Sangli", 220),
+                new Neighbor("Chandrapur", 320),
                 new Neighbor("Nagpur", 423)
         ));
 
@@ -47,14 +47,25 @@ public class RomaniaMapAStar {
                 new Neighbor("Solapur", 423),
                 new Neighbor("Amaravati", 152)
         ));
+        
+        map.put("Chandrapur", Arrays.asList(
+                new Neighbor("Solapur", 320),
+                new Neighbor("Dhule", 220)
+        ));
 
         map.put("Amaravati", Arrays.asList(
                 new Neighbor("Nagpur", 152),
-                new Neighbor("Sangli", 361)
+                new Neighbor("Sangli", 361),
+                new Neighbor("Dhule", 180)
+        ));
+        
+        map.put("Dhule", Arrays.asList(
+                new Neighbor("Sangli", 120),
+                new Neighbor("Amravati", 180),
+                new Neighbor("Chandrapur", 220)
         ));
 
         map.put("Sangli", Arrays.asList(
-                new Neighbor("Solapur", 220),
                 new Neighbor("Mumbai", 391),
                 new Neighbor("Amaravati", 361)
         ));
@@ -95,13 +106,15 @@ public class RomaniaMapAStar {
     private static int estimateCost(String city, String goalCity) {
         // Define heuristic values for all cities
         Map<String, Integer> heuristicValues = new HashMap<>();
-        heuristicValues.put("Solapur", 0);
-        heuristicValues.put("Pune", 210);
-        heuristicValues.put("Nashik", 168);
-        heuristicValues.put("Mumbai", 220);
-        heuristicValues.put("Nagpur", 423);
-        heuristicValues.put("Amaravati", 361);
-        heuristicValues.put("Sangli", 220);
+        heuristicValues.put("Solapur", 100);
+        heuristicValues.put("Pune", 200);
+        heuristicValues.put("Nashik", 150);
+        heuristicValues.put("Mumbai", 250);
+        heuristicValues.put("Nagpur", 350);
+        heuristicValues.put("Chandrapur", 250);
+        heuristicValues.put("Dhule", 300);
+        heuristicValues.put("Amaravati", 300);
+        heuristicValues.put("Sangli", 0);
 
         // Return the heuristic value for the given city
         return heuristicValues.getOrDefault(city, 0);
