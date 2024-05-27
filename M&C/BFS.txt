@@ -1,0 +1,134 @@
+#include <iostream>
+#include <queue>
+#include <set>
+#include <vector>
+
+using namespace std;
+
+// Class representing the state of the missionaries and cannibals problem
+class State {
+public:
+    int missionariesLeft;  // Number of missionaries on the left bank
+    int cannibalsLeft;     // Number of cannibals on the left bank
+    int missionariesRight; // Number of missionaries on the right bank
+    int cannibalsRight;    // Number of cannibals on the right bank
+    bool boat;             // Indicates whether the boat is on the left bank (true) or right bank (false)
+    vector<State> path;    // To store the path leading to this state
+
+    // Constructor
+    State(int ml, int cl, int mr, int cr, bool b) 
+        : missionariesLeft(ml), cannibalsLeft(cl), missionariesRight(mr), cannibalsRight(cr), boat(b) {}
+
+    // Overloading the less than operator for set comparison
+    bool operator<(const State& s) const {
+        return missionariesLeft < s.missionariesLeft ||
+               (missionariesLeft == s.missionariesLeft && cannibalsLeft < s.cannibalsLeft) ||
+               (missionariesLeft == s.missionariesLeft && cannibalsLeft == s.cannibalsLeft && missionariesRight < s.missionariesRight) ||
+               (missionariesLeft == s.missionariesLeft && cannibalsLeft == s.cannibalsLeft && missionariesRight == s.missionariesRight && cannibalsRight < s.cannibalsRight) ||
+               (missionariesLeft == s.missionariesLeft && cannibalsLeft == s.cannibalsLeft && missionariesRight == s.missionariesRight && cannibalsRight == s.cannibalsRight && boat < s.boat);
+    }
+};
+
+// Function to check if the number of missionaries is greater than or equal to the number of cannibals
+bool isSafe(int missionaries, int cannibals) {
+    return (missionaries >= cannibals || missionaries == 0);
+}
+
+// Function to check if the state is valid (within constraints)
+bool isValidState(const State& s) {
+    return s.missionariesLeft >= 0 && s.cannibalsLeft >= 0 && s.missionariesRight >= 0 && s.cannibalsRight >= 0 &&
+           s.missionariesLeft <= 3 && s.cannibalsLeft <= 3 && s.missionariesRight <= 3 && s.cannibalsRight <= 3 &&
+           isSafe(s.missionariesLeft, s.cannibalsLeft) && isSafe(s.missionariesRight, s.cannibalsRight);
+}
+
+// Function to check if the state is the goal state
+bool isGoalState(const State& s) {
+    return s.missionariesLeft == 0 && s.cannibalsLeft == 0;
+}
+
+// Function to print the solution path
+void printSolution(const vector<State>& path) {
+    for (const auto& state : path) {
+        cout << "Left: (" << state.missionariesLeft << "m," << state.cannibalsLeft << "c)  ";
+        if (state.boat)
+            cout << "Boat -> ";
+        else
+            cout << "<- Boat ";
+        cout << "Right: (" << state.missionariesRight << "m," << state.cannibalsRight << "c)" << endl;
+    }
+}
+
+// Breadth-first search algorithm
+void bfs(State initial) {
+    queue<State> q;
+    set<State> visited;
+
+    initial.path.push_back(initial);
+    q.push(initial);
+    visited.insert(initial);
+
+    while (!q.empty()) {
+        State currentState = q.front();
+        q.pop();
+
+        if (isGoalState(currentState)) {
+            printSolution(currentState.path);
+            return;
+        }
+
+        // Generate all possible next states
+        vector<State> nextStates;
+        // If boat is on the left bank
+        if (currentState.boat) {
+            for (int i = 0; i <= 2; ++i) {
+                for (int j = 0; j <= 2; ++j) {
+                    if (i + j >= 1 && i + j <= 2) {
+                        State nextState(currentState.missionariesLeft - i, currentState.cannibalsLeft - j,
+                                        currentState.missionariesRight + i, currentState.cannibalsRight + j, false);
+                        if (isValidState(nextState) && visited.find(nextState) == visited.end()) {
+                            nextState.path = currentState.path;
+                            nextState.path.push_back(nextState);
+                            nextStates.push_back(nextState);
+                        }
+                    }
+                }
+            }
+        }
+        // If boat is on the right bank
+        else {
+            for (int i = 0; i <= 2; ++i) {
+                for (int j = 0; j <= 2; ++j) {
+                    if (i + j >= 1 && i + j <= 2) {
+                        State nextState(currentState.missionariesLeft + i, currentState.cannibalsLeft + j,
+                                        currentState.missionariesRight - i, currentState.cannibalsRight - j, true);
+                        if (isValidState(nextState) && visited.find(nextState) == visited.end()) {
+                            nextState.path = currentState.path;
+                            nextState.path.push_back(nextState);
+                            nextStates.push_back(nextState);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Enqueue all next states
+        for (const auto& nextState : nextStates) {
+            visited.insert(nextState);
+            q.push(nextState);
+        }
+    }
+
+    cout << "No solution found!\n";
+}
+
+int main() {
+    int ml, cl, mr, cr;
+    cout << "Enter the number of missionaries and cannibals on the left bank (separated by space): ";
+    cin >> ml >> cl;
+    cout << "Enter the number of missionaries and cannibals on the right bank (separated by space): ";
+    cin >> mr >> cr;
+    State initial(ml, cl, mr, cr, true); // Initial state
+    cout << "Solution path:\n";
+    bfs(initial);
+    return 0;
+}
